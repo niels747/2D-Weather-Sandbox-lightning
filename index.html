@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>2D Weather Sandbox</title>
+	<script type="text/javascript" src="libraries/dat.gui.min.js"></script>
+	<script type="text/javascript" src="libraries/pako.min.js"></script>
+	<script type="text/javascript" src="app.js"></script>
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+	<style>
+		#mainCanvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		input[type="range"] {
+			width: 800px;
+		}
+
+		.icon-bar {
+			width: 100%;
+			height: 0px;
+			padding: 0px;
+		}
+
+		.icon-bar a {
+			float: right;
+			width: 150px;
+			text-align: center;
+			padding: 0px;
+			transition: all 0.3s ease;
+		}
+
+		.icon-bar a img {
+			height: 70px;
+			text-align: center;
+			padding: 0px;
+		}
+
+		.icon-bar a:hover {
+			background-color: #000;
+		}
+	</style>
+</head>
+
+<body id="body" style="padding: 0px; margin: 0px; background-color: rgb(41, 41, 41);" onload="updateSetupSliders();">
+
+	<div id="IntroScreen" style="color: white; padding: 10px; font-size: 25px">
+		<div class="icon-bar">
+			<a href="https://github.com/niels747/2D-Weather-Sandbox" target="_blank" rel="noopener noreferrer"><img
+					src="resources/Github.png"></a>
+			<a href="https://www.patreon.com/user?u=76043935" target="_blank" rel="noopener noreferrer"><img
+					src="resources/Patreon.png"></a>
+			<a href="https://www.youtube.com/user/nielsdaemen/videos" target="_blank" rel="noopener noreferrer"><img
+					src="resources/Youtube.png"></a>
+			<a href="https://discord.gg/KzXBANyGk6" target="_blank" rel="noopener noreferrer"><img
+					src="resources/Discord.png"></a>
+
+		</div>
+		<h1>2D Weather Sandbox</h1>
+		<i>By Niels Daemen</i>
+
+		<form id="startBtn" oninput="updateSetupSliders();">
+			<p>
+				Choose a resolution. The higher the resolution, the slower it will
+				run
+			</p>
+			<table>
+				<tr>
+					<td>
+						<b>Horizontal resolution</b>
+					</td>
+					<td>
+						<input type="range" min="100" max="16000" value="2500" step="100" id="simResSelX" />
+						<output id="simResShowX"></output>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<b>Vertical resolution</b>
+					</td>
+					<td>
+						<input type="range" min="100" max="500" value="300" step="10" id="simResSelY" />
+						<output id="simResShowY"></output>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<b>Altitude</b>
+					</td>
+					<td>
+						<input type="range" min="5000" max="15000" value="12000" step="100" id="simHeightSel" />
+						<output id="simHeightShow"></output>
+					</td>
+				</tr>
+			</table>
+			<input type="button" value="Create New Simulation" onclick="loadData()" />
+			<i>Move the mouse until you see a terrain you like, then just click to
+				start.</i>
+		</form>
+
+		<p>
+			<label for="fileInput">Load Save File:</label>
+			<input type="file" id="fileInput" name="fileInput" accept=".weathersandbox" onchange="loadData()" />
+		</p>
+		<p style="font-size: 20px">
+			<i>Save files from older versions won't work!</i>
+		</p>
+
+		<br>
+
+		<h3>Example Save Files</h3>
+
+		<p>
+			<a style="color: white" href="./saves/Three Nice Cells.weathersandbox">Three Nice Cells</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/Mountain Snow Storm.weathersandbox">Mountain Snow Storm</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/Powerful & Longlasting Cell.weathersandbox">Powerful & Longlasting
+				Cell</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/Rain Sucked Up.weathersandbox">Powerfull updraft sucking up rain and
+				turning it into hail.</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/Powerful Hail and Snow Cells.weathersandbox">Powerful Hail and Snow
+				Cells</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/Very nice cell over coastal mountain.weathersandbox">Very nice cell
+				over coastal mountain</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/Awesome Convergence Cell.weathersandbox">Awesome Convergence Cell</a>
+		</p>
+
+		<p>
+			<a style="color: white" href="./saves/100 X 100 Test.weathersandbox">100 X 100 Test</a>
+		</p>
+
+
+
+		<br>
+
+
+		<br>
+		<div id="help" style="margin: 15px">
+			<h2>Tips</h2>
+			<li>Vertical resolution of 300 gives most realistic results</li>
+			<li>Larger horizontal resolutions allow stronger converging winds to develop, forming more realistic, longer
+				lasting cells</li>
+			<li>Performance is mostly GPU dependent, GTX 1070 or better recommended for realtime gameplay</li>
+			<li>If you have a laptop with a dedicated GPU, make sure the browser is actually using it! It's often using
+				the integrated graphics by default</li>
+			<li>Play in fullscreen mode (F11)</li>
+
+			<h2>Controls</h2>
+			<h3>Mouse</h3>
+			<li>Middle mouse button to drag the simulation area around</li>
+			<li>
+				Mouse wheel to zoom in and out, Or to change brush size while holding
+				down B
+			</li>
+			<li>
+				Left mouse button to use selected tool. Hold down Ctrl (command on
+				mac) to perform the inverted action
+			</li>
+			<li>Touchscreen input is pretty basic for now, will add more controls in the future</li>
+			<h3>Keys</h3>
+			<table style="width: 1000px">
+				<tr>
+					<td>1 - 8</td>
+					<td>Display Modes</td>
+				</tr>
+				<tr>
+					<td>Q - Y</td>
+					<td>Tools</td>
+				</tr>
+				<tr>
+					<td>Left Ctrl</td>
+					<td>Invert Tool Action</td>
+				</tr>
+				<tr>
+					<td>~</td>
+					<td>No tool, flashlight</td>
+				</tr>
+				<tr>
+					<td>Arrows ◄ ▲ ▼ ►</td>
+					<td>Move View</td>
+				</tr>
+				<tr>
+					<td>+ -</td>
+					<td>Zoom In / Out</td>
+				</tr>
+				<tr>
+					<td>Right Ctrl</td>
+					<td>Slow Pan speed</td>
+				</tr>
+				<tr>
+					<td>Space Bar</td>
+					<td>Pause / Resume</td>
+				</tr>
+				<tr>
+					<td>Tab</td>
+					<td>Show / Hide Velocity Vectors</td>
+				</tr>
+				<tr>
+					<td>A</td>
+					<td>Toggle flight simulator mode. Mouse controls pitch, Throttle: ▲ ▼ </td>
+				</tr>
+				<tr>
+					<td>D</td>
+					<td>Show / Hide Droplets</td>
+				</tr>
+				<tr>
+					<td>G</td>
+					<td>Show / Hide Sounding Graph</td>
+				</tr>
+				<tr>
+					<td>M</td>
+					<td>Add / Remove Weather Stations</td>
+				</tr>
+				<tr>
+					<td>H</td>
+					<td>Show / Hide GUI</td>
+				</tr>
+				<tr>
+					<td>V</td>
+					<td>Reset View</td>
+				</tr>
+				<tr>
+					<td>B</td>
+					<td>Change Brush Size By Scrolling</td>
+				</tr>
+				<tr>
+					<td>B x 2</td>
+					<td>Toggle Whole Width Brush</td>
+				</tr>
+				<tr>
+					<td>L</td>
+					<td>Reload from save file</td>
+				</tr>
+
+			</table>
+
+			<br />
+			<br />
+
+			<h1>$ Support me on Patreon $</h1>
+			If you love my project and want to support it's future development, please consider supporting me on
+			patreon.
+			<br />
+			Every small amount helps! Thank you!
+
+			<br />
+			<br />
+			<br />
+			<i>By Niels Daemen</i>
+		</div>
+	</div>
+	<canvas id="graphCanvas" style="z-index: 1; position: absolute; display: none"></canvas>
+	<canvas id="mainCanvas" style="
+				position: fixed;
+				user-select: none;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				z-index: 0;
+				display: none;
+			">
+		Your browser does not support HTML5, you must be using a really old
+		browser!
+	</canvas>
+</body>
+
+</html>
