@@ -9,6 +9,9 @@ details. You should have received a copy of the GNU General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+// REDIRECT TO MAIN REPO
+window.location.replace("https://niels747.github.io/2D-Weather-Sandbox/");
+
 function updateSetupSliders()
 {
   document.getElementById("simResShowX").value = parseInt(simResSelX.value);
